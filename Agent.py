@@ -1,5 +1,5 @@
 
-# coding: utf-8
+# coding: utf-
 
 # In[1]:
 
@@ -23,7 +23,6 @@ internal_model[15, 1] = 10
 # In[3]:
 
 def model_update(internal_model, instant_reward, state):
-    print "Inside model update - instant reward, state", instant_reward, state
     internal_model[state[0][0]*10 + state[0][1]][1] = instant_reward
     return internal_model
 
@@ -77,7 +76,10 @@ def model_based_action_selection(curr_state, visited_pos, internal_model):
         value_action = list(zip(next_state_values, actions_to_next_states))
         random.shuffle(value_action)
         next_state_values[:], actions_to_next_states[:] = zip(*value_action)
-        action = actions_to_next_states[next_state_values.index(max(next_state_values))]        
+        if random.uniform(0, 1) < 0.8:
+            action = actions_to_next_states[next_state_values.index(max(next_state_values))]        
+        else:
+            action = random.choice(actions_to_next_states)
     return action
 
 
@@ -92,32 +94,13 @@ def take_action(state, action):
 
 curr_state = internal_model[0]
 visited_pos = [curr_state[0]]
-reward = 0
-for i in range(100):
-    action = model_based_action_selection(curr_state, visited_pos, internal_model)
-    state, instant_reward = take_action(curr_state, action)
-    internal_model = model_update(internal_model, instant_reward, state)
-    visited_pos = numpy.vstack((visited_pos, state[0]))
-    curr_state = state
-    reward += instant_reward
-
-
-# In[9]:
-
-print curr_state
-
-
-# In[10]:
-
-print reward
-
-
-# In[ ]:
-
-
-
-
-# In[ ]:
-
-
-
+def mb_learn(iterations, curr_state, visited_pos, internal_model):
+	reward = 0
+	for i in range(iterations):
+		action = model_based_action_selection(curr_state, visited_pos, internal_model)
+		state, instant_reward = take_action(curr_state, action)
+		internal_model = model_update(internal_model, instant_reward, state)
+		visited_pos = numpy.vstack((visited_pos, state[0]))
+		curr_state = state
+		reward += instant_reward
+	return state, curr_state, action, internal_model, reward, visited_pos
